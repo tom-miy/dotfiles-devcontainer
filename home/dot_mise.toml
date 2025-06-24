@@ -1,0 +1,28 @@
+# mise configuration
+
+[tools]
+# Node.js
+node = "lts"
+
+# Python
+python = "3.11"
+
+# Go
+go = "latest"
+
+# Rust
+rust = "latest"
+
+# Global tools
+[tools.global]
+# CLI tools
+gh = "latest"
+fzf = "latest"
+bat = "latest"
+fd = "latest"
+ripgrep = "latest"
+eza = "latest"
+zoxide = "latest"
+
+# Development tools
+shfmt = "latest"
