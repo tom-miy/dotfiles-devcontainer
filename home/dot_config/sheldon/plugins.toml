@@ -23,8 +23,8 @@ github = "zsh-users/zsh-autosuggestions"
 [plugins.zsh-history-substring-search]
 github = "zsh-users/zsh-history-substring-search"
 
-# Fast node manager
-[plugins.fnm]
-github = "Schniz/fnm"
-apply = ["PATH", "source"]
-hooks.post = "eval \"$(fnm env --use-on-cd)\""
+# Fast node manager (commented out - use mise for Node.js instead)
+# [plugins.fnm]
+# github = "Schniz/fnm"
+# apply = ["PATH", "source"]
+# hooks.post = "eval \"$(fnm env --use-on-cd)\""

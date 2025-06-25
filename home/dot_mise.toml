@@ -4,17 +4,14 @@
 # Node.js
 node = "lts"
 
-# Python
-python = "3.11"
+# # Python
+# python = "3.11"
 
-# Go
-go = "latest"
+# # Go
+# go = "latest"
 
 # Rust
 rust = "latest"
-
-# Global tools
-[tools.global]
 # CLI tools
 gh = "latest"
 fzf = "latest"

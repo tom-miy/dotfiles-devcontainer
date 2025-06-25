@@ -37,10 +37,12 @@ if ! command -v mise &> /dev/null; then
     export PATH="$HOME/.local/bin:$PATH"
     
     # Add mise to shell rc files
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-    echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+    if ! grep -q 'mise activate' ~/.bashrc 2>/dev/null; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+        echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+    fi
     
-    if [ -f ~/.zshrc ]; then
+    if [ -f ~/.zshrc ] && ! grep -q 'mise activate' ~/.zshrc; then
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
         echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
     fi
@@ -49,8 +51,17 @@ fi
 # Install sheldon
 if ! command -v sheldon &> /dev/null; then
     echo -e "${YELLOW}📦 Installing sheldon...${NC}"
-    curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
-        | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin
+    # Try the install script first
+    if ! curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
+        | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin 2>/dev/null; then
+        echo -e "${YELLOW}⚠️  Fallback: Installing sheldon via cargo...${NC}"
+        # Fallback to cargo if available
+        if command -v cargo &> /dev/null; then
+            cargo install sheldon --root ~/.local
+        else
+            echo -e "${RED}❌ Failed to install sheldon. Please install it manually.${NC}"
+        fi
+    fi
 fi
 
 # Install zsh plugins via sheldon
@@ -62,6 +73,14 @@ fi
 # Install tools via mise
 if command -v mise &> /dev/null; then
     echo -e "${YELLOW}🔧 Installing development tools via mise...${NC}"
+    # Trust mise configuration files
+    if [ -f ~/.mise.toml ]; then
+        mise trust ~/.mise.toml 2>/dev/null || true
+    fi
+    # Trust project-level mise config if exists
+    if [ -f mise.toml ] || [ -f .mise.toml ]; then
+        mise trust 2>/dev/null || true
+    fi
     mise install
 fi
 

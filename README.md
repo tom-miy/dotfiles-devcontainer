@@ -94,15 +94,11 @@ curl -fsSL https://raw.githubusercontent.com/tom-miy/dotfiles-devcontainer/main/
       "configureZshAsDefaultShell": true
     }
   },
-  "dotfiles": {
-    "repository": "git@github.com:tom-miy/dotfiles-devcontainer.git",
-    "installCommand": "install.sh"
-  },
+  "postCreateCommand": "git clone https://github.com/tom-miy/dotfiles-devcontainer.git ~/dotfiles && cd ~/dotfiles && bash install.sh && cd /workspaces/* && mise trust 2>/dev/null || true && chmod 700 ~/.gnupg && chmod 600 ~/.gnupg/*",
   "mounts": [
-    "source=${env:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-    "source=${env:HOME}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached"
+    "source=${env:HOME}/.ssh,target=${containerUserHome}/.ssh,type=bind,consistency=cached",
+    "source=${env:HOME}/.gnupg,target=${containerUserHome}/.gnupg,type=bind,consistency=cached"
   ],
-  "postCreateCommand": "chmod 700 ~/.gnupg && chmod 600 ~/.gnupg/*",
   "customizations": {
     "vscode": {
       "settings": {

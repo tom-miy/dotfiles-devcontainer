@@ -31,6 +31,9 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
 # mise (tool version management)
 if command -v mise >/dev/null 2>&1; then
+    # Trust mise config files silently
+    mise trust ~/.mise.toml 2>/dev/null || true
+    mise trust 2>/dev/null || true
     eval "$(mise activate zsh)"
 fi
 
