@@ -94,7 +94,7 @@ curl -fsSL https://raw.githubusercontent.com/tom-miy/dotfiles-devcontainer/main/
       "configureZshAsDefaultShell": true
     }
   },
-  "postCreateCommand": "git clone https://github.com/tom-miy/dotfiles-devcontainer.git ~/dotfiles && cd ~/dotfiles && bash install.sh && cd /workspaces/* && mise trust 2>/dev/null || true && chmod 700 ~/.gnupg && chmod 600 ~/.gnupg/*",
+  "postCreateCommand": "git clone https://github.com/tom-miy/dotfiles-devcontainer.git ~/dotfiles && cd ~/dotfiles && bash install.sh",
   "mounts": [
     "source=${env:HOME}/.ssh,target=${containerUserHome}/.ssh,type=bind,consistency=cached",
     "source=${env:HOME}/.gnupg,target=${containerUserHome}/.gnupg,type=bind,consistency=cached"
@@ -299,19 +299,162 @@ p10k configure
 
 **⚠️ フォントについて**
 
-devcontainer環境では、VS Codeのターミナルフォントが重要です。Powerlevel10kのアイコンを正しく表示するには、VS Codeの設定で以下のようなNerd Fontを使用してください：
+devcontainer環境では、**ホスト側**（Windows/macOS/Linux）のフォント設定が重要です。Powerlevel10kのアイコンを正しく表示するには、以下の手順に従ってください：
+
+### フォントのインストール
+
+**1. 自動インストールスクリプト（推奨）**
+
+このリポジトリには各OS用の自動インストールスクリプトが含まれています：
+
+```bash
+# このリポジトリをクローン
+git clone https://github.com/tom-miy/dotfiles-devcontainer.git
+cd dotfiles-devcontainer
+```
+
+**Windows（PowerShellを管理者として実行）**:
+```powershell
+.\scripts\font-install\install-fonts-windows.ps1
+```
+
+**macOS**:
+```bash
+bash scripts/font-install/install-fonts-macos.sh
+```
+
+**Linux**:
+```bash
+bash scripts/font-install/install-fonts-linux.sh
+```
+
+**2. 手動ダウンロード**
+
+以下のリンクから4つのフォントファイルをダウンロードし、ホストOSにインストールしてください：
+
+- [MesloLGS NF Regular.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf)
+- [MesloLGS NF Bold.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf)
+- [MesloLGS NF Italic.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf)
+- [MesloLGS NF Bold Italic.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf)
+
+**インストール方法**：
+- **Windows**: ダウンロードしたフォントファイルを右クリック → 「インストール」
+- **macOS**: ダウンロードしたフォントファイルをダブルクリック → 「フォントをインストール」
+- **Linux**: フォントファイルを `~/.local/share/fonts/` にコピーし、`fc-cache -fv` を実行
+
+**2. PowerShellでの自動ダウンロード・インストール（Windows）**
+
+```powershell
+# PowerShellを管理者として実行
+$urls = @(
+    "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf",
+    "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf",
+    "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf",
+    "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf"
+)
+
+# フォントをダウンロードしてインストール
+foreach ($url in $urls) {
+    $filename = Split-Path $url -Leaf
+    $filepath = Join-Path $env:TEMP $filename
+    
+    Write-Host "ダウンロード中: $filename"
+    Invoke-WebRequest -Uri $url -OutFile $filepath
+    
+    # フォントをインストール
+    Write-Host "インストール中: $filename"
+    $shell = New-Object -ComObject Shell.Application
+    $fontsFolder = $shell.Namespace(0x14)
+    $fontsFolder.CopyHere($filepath, 0x10)
+    
+    Remove-Item $filepath
+}
+
+Write-Host "MesloLGS NF フォントのインストールが完了しました。VS Code/Cursorを再起動してください。"
+```
+
+**3. 手動インストール手順**
+
+**Windows**:
+1. 上記のリンクからフォントファイルをダウンロード
+2. ダウンロードしたフォントファイルを**右クリック**
+3. **「すべてのユーザーに対してインストール」**を選択（推奨）
+4. または、フォントファイルをダブルクリック → **「インストール」**ボタンをクリック
+
+**macOS**:
+1. フォントファイルをダウンロード
+2. フォントファイルを**ダブルクリック**
+3. Font Bookが開いたら**「フォントをインストール」**をクリック
+4. または、`~/Library/Fonts/`フォルダにドラッグ&ドロップ
+
+**Linux（Ubuntu/Debian）**:
+```bash
+# ディレクトリを作成
+mkdir -p ~/.local/share/fonts
+
+# フォントをダウンロード
+cd ~/.local/share/fonts
+wget https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+wget https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+wget https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+wget https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+
+# フォントキャッシュを更新
+fc-cache -fv
+
+# インストールされたフォントを確認
+fc-list | grep "MesloLGS NF"
+```
+
+### VS Code/Cursor設定
+
+フォントインストール後、VS Code/Cursorの `settings.json` に以下を追加：
 
 ```json
 {
-  "terminal.integrated.fontFamily": "'MesloLGS NF', 'Cascadia Code PL', 'JetBrains Mono', monospace"
+  "terminal.integrated.fontFamily": "'MesloLGS NF', 'Cascadia Code PL', 'JetBrains Mono', monospace",
+  "terminal.integrated.fontSize": 14
 }
 ```
 
-推奨フォント：
-- MesloLGS NF（Powerlevel10k推奨）
-- Cascadia Code PL
-- JetBrains Mono
-- Hack Nerd Font
+**設定ファイルの場所**：
+- **VS Code**: 
+  - Windows: `%APPDATA%\Code\User\settings.json`
+  - macOS: `~/Library/Application Support/Code/User/settings.json`
+  - Linux: `~/.config/Code/User/settings.json`
+- **Cursor**: 
+  - Windows: `%APPDATA%\Cursor\User\settings.json`
+  - macOS: `~/Library/Application Support/Cursor/User/settings.json`
+  - Linux: `~/.config/Cursor/User/settings.json`
+
+### 代替フォント
+
+MesloLGS NFで問題が発生する場合は、以下のフォントも試してください：
+
+```json
+{
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', 'Hack Nerd Font', 'Cascadia Code PL', monospace"
+}
+```
+
+**推奨フォント**：
+- **MesloLGS NF**（Powerlevel10k推奨）
+- **JetBrains Mono Nerd Font**
+- **Hack Nerd Font**
+- **Cascadia Code PL**
+- **Fira Code Nerd Font**
+
+### 文字化け解決方法
+
+1. **フォントが正しくインストールされているか確認**
+2. **VS Code/Cursorを再起動**
+3. **devcontainerを再構築**
+4. **コンテナ内でPowerlevel10kを再設定**：
+   ```bash
+   p10k configure
+   ```
+
+**重要**: devcontainer環境では、コンテナ内ではなく**ホスト側**のフォント設定が使用されます。
 
 ## トラブルシューティング
 
