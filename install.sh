@@ -81,6 +81,11 @@ if command -v mise &> /dev/null; then
     if [ -f mise.toml ] || [ -f .mise.toml ]; then
         mise trust 2>/dev/null || true
     fi
+    # Set GPG permissions
+    if [ -d ~/.gnupg ]; then
+        chmod 700 ~/.gnupg
+        chmod 600 ~/.gnupg/* 2>/dev/null || true
+    fi
     mise install
 fi
 
