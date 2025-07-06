@@ -1,6 +1,6 @@
-# MesloLGS NF & HackGen & UDEV Gothic フォントインストールスクリプト
+# MesloLGS NF & HackGen & UDEV Gothic & Moralerspace フォントインストールスクリプト
 
-Powerlevel10k で使用する MesloLGS NF フォント、日本語対応の HackGen フォント、およびモダンな日本語対応の UDEV Gothic フォントを自動インストールするスクリプト集です。
+Powerlevel10k で使用する MesloLGS NF フォント、日本語対応の HackGen フォント、モダンな日本語対応の UDEV Gothic フォント、およびスタイリッシュな日本語対応の Moralerspace フォントを自動インストールするスクリプト集です。
 
 ## 使用方法
 
@@ -86,6 +86,14 @@ bash scripts/font-install/install-fonts-linux.sh --force
 }
 ```
 
+### Moralerspace（スタイリッシュな日本語対応）
+```json
+{
+  "terminal.integrated.fontFamily": "'MoralerspaceNF', 'Cascadia Code PL', monospace",
+  "terminal.integrated.fontSize": 14
+}
+```
+
 ## トラブルシューティング
 
 ### Windows
@@ -142,8 +150,21 @@ bash scripts/font-install/install-fonts-linux.sh --force
 - UDEVGothicNF-Italic.ttf
 - UDEVGothicNF-BoldItalic.ttf
 
+### Moralerspace（スタイリッシュな日本語対応）
+以下の8つのフォントファイルがインストールされます：
+
+- Moralerspace-Regular.ttf
+- Moralerspace-Bold.ttf
+- Moralerspace-Italic.ttf
+- Moralerspace-BoldItalic.ttf
+- MoralerspaceNF-Regular.ttf
+- MoralerspaceNF-Bold.ttf
+- MoralerspaceNF-Italic.ttf
+- MoralerspaceNF-BoldItalic.ttf
+
 ## ライセンス
 
 - **MesloLGS NF**: [romkatv/powerlevel10k](https://github.com/romkatv/powerlevel10k) プロジェクトで配布されているものを使用
 - **HackGen**: [yuru7/HackGen](https://github.com/yuru7/HackGen) プロジェクトで配布されているものを使用（SIL Open Font License 1.1）
 - **UDEV Gothic**: [yuru7/udev-gothic](https://github.com/yuru7/udev-gothic) プロジェクトで配布されているものを使用（SIL Open Font License 1.1）
+- **Moralerspace**: [yuru7/moralerspace](https://github.com/yuru7/moralerspace) プロジェクトで配布されているものを使用（SIL Open Font License 1.1）
