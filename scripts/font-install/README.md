@@ -1,6 +1,6 @@
-# MesloLGS NF & HackGen フォントインストールスクリプト
+# MesloLGS NF & HackGen & UDEV Gothic フォントインストールスクリプト
 
-Powerlevel10k で使用する MesloLGS NF フォントと日本語対応の HackGen フォントを自動インストールするスクリプト集です。
+Powerlevel10k で使用する MesloLGS NF フォント、日本語対応の HackGen フォント、およびモダンな日本語対応の UDEV Gothic フォントを自動インストールするスクリプト集です。
 
 ## 使用方法
 
@@ -78,6 +78,14 @@ bash scripts/font-install/install-fonts-linux.sh --force
 }
 ```
 
+### UDEV Gothic（モダンな日本語対応）
+```json
+{
+  "terminal.integrated.fontFamily": "'UDEVGothicNF', 'Cascadia Code PL', monospace",
+  "terminal.integrated.fontSize": 14
+}
+```
+
 ## トラブルシューティング
 
 ### Windows
@@ -122,7 +130,20 @@ bash scripts/font-install/install-fonts-linux.sh --force
 - HackGenNerd35-Regular.ttf
 - HackGenNerd35-Bold.ttf
 
+### UDEV Gothic（モダンな日本語対応）
+以下の8つのフォントファイルがインストールされます：
+
+- UDEVGothic-Regular.ttf
+- UDEVGothic-Bold.ttf
+- UDEVGothic-Italic.ttf
+- UDEVGothic-BoldItalic.ttf
+- UDEVGothicNF-Regular.ttf
+- UDEVGothicNF-Bold.ttf
+- UDEVGothicNF-Italic.ttf
+- UDEVGothicNF-BoldItalic.ttf
+
 ## ライセンス
 
 - **MesloLGS NF**: [romkatv/powerlevel10k](https://github.com/romkatv/powerlevel10k) プロジェクトで配布されているものを使用
 - **HackGen**: [yuru7/HackGen](https://github.com/yuru7/HackGen) プロジェクトで配布されているものを使用（SIL Open Font License 1.1）
+- **UDEV Gothic**: [yuru7/udev-gothic](https://github.com/yuru7/udev-gothic) プロジェクトで配布されているものを使用（SIL Open Font License 1.1）
