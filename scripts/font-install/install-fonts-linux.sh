@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# MesloLGS NF & HackGen & UDEV Gothic & Moralerspace フォント自動インストールスクリプト (Linux用)
+# MesloLGS NF & HackGen & UDEV Gothic & Moralerspace & Cica フォント自動インストールスクリプト (Linux用)
 
 set -e
 
-echo "🔤 MesloLGS NF & HackGen & UDEV Gothic & Moralerspace フォントインストーラー (Linux)"
+echo "🔤 MesloLGS NF & HackGen & UDEV Gothic & Moralerspace & Cica フォントインストーラー (Linux)"
 echo "============================================="
 
 # フォント定義
@@ -51,10 +51,19 @@ declare -a MORALERSPACE_FONTS=(
     "MoralerspaceNF-BoldItalic.ttf:MoralerspaceNF-BoldItalic.ttf"
 )
 
+# Cica フォント定義
+declare -a CICA_FONTS=(
+    "Cica-Regular.ttf:Cica-Regular.ttf"
+    "Cica-Bold.ttf:Cica-Bold.ttf"
+    "Cica-RegularItalic.ttf:Cica-RegularItalic.ttf"
+    "Cica-BoldItalic.ttf:Cica-BoldItalic.ttf"
+)
+
 BASE_URL="https://github.com/romkatv/powerlevel10k-media/raw/master"
 HACKGEN_BASE_URL="https://github.com/yuru7/HackGen/releases/latest/download"
 UDEV_BASE_URL="https://github.com/yuru7/udev-gothic/releases/latest/download"
 MORALERSPACE_BASE_URL="https://github.com/yuru7/moralerspace/releases/latest/download"
+CICA_BASE_URL="https://github.com/miiton/Cica/releases/latest/download"
 FONT_DIR="$HOME/.local/share/fonts"
 
 # 必要なコマンドチェック
@@ -74,8 +83,9 @@ existing_fonts=$(find "$FONT_DIR" -name "*MesloLGS*" 2>/dev/null | wc -l)
 existing_hackgen=$(find "$FONT_DIR" -name "*HackGen*" 2>/dev/null | wc -l)
 existing_udev=$(find "$FONT_DIR" -name "*UDEV*" 2>/dev/null | wc -l)
 existing_moralerspace=$(find "$FONT_DIR" -name "*Moralerspace*" 2>/dev/null | wc -l)
+existing_cica=$(find "$FONT_DIR" -name "*Cica*" 2>/dev/null | wc -l)
 
-if [ "$existing_fonts" -gt 0 ] || [ "$existing_hackgen" -gt 0 ] || [ "$existing_udev" -gt 0 ] || [ "$existing_moralerspace" -gt 0 ]; then
+if [ "$existing_fonts" -gt 0 ] || [ "$existing_hackgen" -gt 0 ] || [ "$existing_udev" -gt 0 ] || [ "$existing_moralerspace" -gt 0 ] || [ "$existing_cica" -gt 0 ]; then
     if [ "$1" != "--force" ]; then
         echo "✅ フォントは既にインストールされています:"
         if [ "$existing_fonts" -gt 0 ]; then
@@ -94,6 +104,10 @@ if [ "$existing_fonts" -gt 0 ] || [ "$existing_hackgen" -gt 0 ] || [ "$existing_
             echo "  Moralerspace フォント:"
             find "$FONT_DIR" -name "*Moralerspace*" 2>/dev/null | sed 's/.*\//     - /'
         fi
+        if [ "$existing_cica" -gt 0 ]; then
+            echo "  Cica フォント:"
+            find "$FONT_DIR" -name "*Cica*" 2>/dev/null | sed 's/.*\//     - /'
+        fi
         echo ""
         read -r -p "再インストールしますか? (y/N): " choice
         if [[ ! "$choice" =~ ^[yY]$ ]]; then
@@ -107,7 +121,7 @@ echo "📥 フォントをダウンロード・インストール中..."
 echo ""
 
 success_count=0
-total_count=$((${#FONTS[@]} + ${#HACKGEN_FONTS[@]} + ${#UDEV_FONTS[@]} + ${#MORALERSPACE_FONTS[@]}))
+total_count=$((${#FONTS[@]} + ${#HACKGEN_FONTS[@]} + ${#UDEV_FONTS[@]} + ${#MORALERSPACE_FONTS[@]} + ${#CICA_FONTS[@]}))
 
 # ダウンロードコマンド選択
 if command -v curl >/dev/null 2>&1; then
@@ -200,6 +214,27 @@ for font_info in "${MORALERSPACE_FONTS[@]}"; do
     echo ""
 done
 
+# Cica フォントダウンロード
+echo "📦 Cica フォントをダウンロード中..."
+for font_info in "${CICA_FONTS[@]}"; do
+    IFS=':' read -r url_name file_name <<< "$font_info"
+    
+    echo "🔄 $file_name をダウンロード中..."
+    
+    # ファイルパス
+    font_file="$FONT_DIR/$file_name"
+    
+    # ダウンロード
+    if $download_cmd "$font_file" "$CICA_BASE_URL/$url_name"; then
+        echo "✅ $file_name のインストールが完了しました。"
+        ((success_count++))
+    else
+        echo "❌ $file_name のダウンロードに失敗しました。"
+    fi
+    
+    echo ""
+done
+
 echo "============================================="
 
 if [ "$success_count" -eq "$total_count" ]; then
@@ -224,6 +259,7 @@ if command -v fc-list >/dev/null 2>&1; then
     installed_hackgen=$(fc-list | grep -i "hackgen" | wc -l)
     installed_udev=$(fc-list | grep -i "udev" | wc -l)
     installed_moralerspace=$(fc-list | grep -i "moralerspace" | wc -l)
+    installed_cica=$(fc-list | grep -i "cica" | wc -l)
     
     if [ "$installed_fonts" -gt 0 ]; then
         echo "✅ MesloLGS NF フォントが正常に認識されています ($installed_fonts個):"
@@ -245,7 +281,12 @@ if command -v fc-list >/dev/null 2>&1; then
         fc-list | grep -i "moralerspace" | sed 's/^/   - /'
     fi
     
-    if [ "$installed_fonts" -eq 0 ] && [ "$installed_hackgen" -eq 0 ] && [ "$installed_udev" -eq 0 ] && [ "$installed_moralerspace" -eq 0 ]; then
+    if [ "$installed_cica" -gt 0 ]; then
+        echo "✅ Cica フォントが正常に認識されています ($installed_cica個):"
+        fc-list | grep -i "cica" | sed 's/^/   - /'
+    fi
+    
+    if [ "$installed_fonts" -eq 0 ] && [ "$installed_hackgen" -eq 0 ] && [ "$installed_udev" -eq 0 ] && [ "$installed_moralerspace" -eq 0 ] && [ "$installed_cica" -eq 0 ]; then
         echo "⚠️  フォントが認識されていません。ログアウト/ログインするか、システムを再起動してください。"
     fi
 else
@@ -260,6 +301,7 @@ echo '     "terminal.integrated.fontFamily": "'\''MesloLGS NF'\''"        # Powe
 echo '     "terminal.integrated.fontFamily": "'\''HackGenNerd'\''"        # 日本語対応'
 echo '     "terminal.integrated.fontFamily": "'\''UDEVGothicNF'\''"      # モダンな日本語対応'
 echo '     "terminal.integrated.fontFamily": "'\''MoralerspaceNF'\''"    # スタイリッシュな日本語対応'
+echo '     "terminal.integrated.fontFamily": "'\''Cica'\''"              # シンプルな日本語対応'
 echo "  3. devcontainer を再構築してください"
 echo ""
 echo "インストール完了!"
