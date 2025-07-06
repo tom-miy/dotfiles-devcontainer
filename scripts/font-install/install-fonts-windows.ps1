@@ -22,9 +22,17 @@ if (-not $isAdmin) {
     exit 1
 }
 
-# Font URL definitions
-$urls = @(
-    # MesloLGS NF fonts
+# Check for GitHub CLI
+if (!(Get-Command gh -ErrorAction SilentlyContinue)) {
+    Write-Warning "GitHub CLI (gh) is required but not installed."
+    Write-Host "Please install GitHub CLI from https://cli.github.com/" -ForegroundColor Yellow
+    Write-Host "Or use: winget install --id GitHub.cli" -ForegroundColor Yellow
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+# Direct TTF downloads (MesloLGS NF)
+$directFonts = @(
     @{
         Name = "MesloLGS NF Regular"
         Url = "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf"
@@ -44,152 +52,87 @@ $urls = @(
         Name = "MesloLGS NF Bold Italic"
         Url = "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf"
         FileName = "MesloLGS NF Bold Italic.ttf"
-    },
-    # HackGen fonts
-    @{
-        Name = "HackGen Regular"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGen-Regular.ttf"
-        FileName = "HackGen-Regular.ttf"
-    },
-    @{
-        Name = "HackGen Bold"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGen-Bold.ttf"
-        FileName = "HackGen-Bold.ttf"
-    },
-    @{
-        Name = "HackGen35 Regular"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGen35-Regular.ttf"
-        FileName = "HackGen35-Regular.ttf"
-    },
-    @{
-        Name = "HackGen35 Bold"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGen35-Bold.ttf"
-        FileName = "HackGen35-Bold.ttf"
-    },
-    @{
-        Name = "HackGenNerd Regular"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGenNerd-Regular.ttf"
-        FileName = "HackGenNerd-Regular.ttf"
-    },
-    @{
-        Name = "HackGenNerd Bold"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGenNerd-Bold.ttf"
-        FileName = "HackGenNerd-Bold.ttf"
-    },
-    @{
-        Name = "HackGenNerd35 Regular"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGenNerd35-Regular.ttf"
-        FileName = "HackGenNerd35-Regular.ttf"
-    },
-    @{
-        Name = "HackGenNerd35 Bold"
-        Url = "https://github.com/yuru7/HackGen/releases/latest/download/HackGenNerd35-Bold.ttf"
-        FileName = "HackGenNerd35-Bold.ttf"
-    },
-    # UDEV Gothic fonts
-    @{
-        Name = "UDEVGothic Regular"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothic-Regular.ttf"
-        FileName = "UDEVGothic-Regular.ttf"
-    },
-    @{
-        Name = "UDEVGothic Bold"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothic-Bold.ttf"
-        FileName = "UDEVGothic-Bold.ttf"
-    },
-    @{
-        Name = "UDEVGothic Italic"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothic-Italic.ttf"
-        FileName = "UDEVGothic-Italic.ttf"
-    },
-    @{
-        Name = "UDEVGothic BoldItalic"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothic-BoldItalic.ttf"
-        FileName = "UDEVGothic-BoldItalic.ttf"
-    },
-    @{
-        Name = "UDEVGothicNF Regular"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothicNF-Regular.ttf"
-        FileName = "UDEVGothicNF-Regular.ttf"
-    },
-    @{
-        Name = "UDEVGothicNF Bold"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothicNF-Bold.ttf"
-        FileName = "UDEVGothicNF-Bold.ttf"
-    },
-    @{
-        Name = "UDEVGothicNF Italic"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothicNF-Italic.ttf"
-        FileName = "UDEVGothicNF-Italic.ttf"
-    },
-    @{
-        Name = "UDEVGothicNF BoldItalic"
-        Url = "https://github.com/yuru7/udev-gothic/releases/latest/download/UDEVGothicNF-BoldItalic.ttf"
-        FileName = "UDEVGothicNF-BoldItalic.ttf"
-    },
-    # Moralerspace fonts
-    @{
-        Name = "Moralerspace Regular"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/Moralerspace-Regular.ttf"
-        FileName = "Moralerspace-Regular.ttf"
-    },
-    @{
-        Name = "Moralerspace Bold"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/Moralerspace-Bold.ttf"
-        FileName = "Moralerspace-Bold.ttf"
-    },
-    @{
-        Name = "Moralerspace Italic"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/Moralerspace-Italic.ttf"
-        FileName = "Moralerspace-Italic.ttf"
-    },
-    @{
-        Name = "Moralerspace BoldItalic"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/Moralerspace-BoldItalic.ttf"
-        FileName = "Moralerspace-BoldItalic.ttf"
-    },
-    @{
-        Name = "MoralerspaceNF Regular"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/MoralerspaceNF-Regular.ttf"
-        FileName = "MoralerspaceNF-Regular.ttf"
-    },
-    @{
-        Name = "MoralerspaceNF Bold"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/MoralerspaceNF-Bold.ttf"
-        FileName = "MoralerspaceNF-Bold.ttf"
-    },
-    @{
-        Name = "MoralerspaceNF Italic"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/MoralerspaceNF-Italic.ttf"
-        FileName = "MoralerspaceNF-Italic.ttf"
-    },
-    @{
-        Name = "MoralerspaceNF BoldItalic"
-        Url = "https://github.com/yuru7/moralerspace/releases/latest/download/MoralerspaceNF-BoldItalic.ttf"
-        FileName = "MoralerspaceNF-BoldItalic.ttf"
-    },
-    # Cica fonts
-    @{
-        Name = "Cica Regular"
-        Url = "https://github.com/miiton/Cica/releases/latest/download/Cica-Regular.ttf"
-        FileName = "Cica-Regular.ttf"
-    },
-    @{
-        Name = "Cica Bold"
-        Url = "https://github.com/miiton/Cica/releases/latest/download/Cica-Bold.ttf"
-        FileName = "Cica-Bold.ttf"
-    },
-    @{
-        Name = "Cica RegularItalic"
-        Url = "https://github.com/miiton/Cica/releases/latest/download/Cica-RegularItalic.ttf"
-        FileName = "Cica-RegularItalic.ttf"
-    },
-    @{
-        Name = "Cica BoldItalic"
-        Url = "https://github.com/miiton/Cica/releases/latest/download/Cica-BoldItalic.ttf"
-        FileName = "Cica-BoldItalic.ttf"
     }
 )
+
+# ZIP font packages (Japanese fonts) - URLs will be updated dynamically
+$zipFonts = @(
+    @{
+        Name = "HackGen"
+        ZipUrl = ""  # Will be updated by GitHub CLI
+        Fonts = @(
+            "HackGen-Regular.ttf",
+            "HackGen-Bold.ttf",
+            "HackGen35-Regular.ttf",
+            "HackGen35-Bold.ttf",
+            "HackGenNerd-Regular.ttf",
+            "HackGenNerd-Bold.ttf",
+            "HackGenNerd35-Regular.ttf",
+            "HackGenNerd35-Bold.ttf"
+        )
+    },
+    @{
+        Name = "UDEV Gothic"
+        ZipUrl = ""  # Will be updated by GitHub CLI
+        Fonts = @(
+            "UDEVGothic-Regular.ttf",
+            "UDEVGothic-Bold.ttf",
+            "UDEVGothic-Italic.ttf",
+            "UDEVGothic-BoldItalic.ttf",
+            "UDEVGothicNF-Regular.ttf",
+            "UDEVGothicNF-Bold.ttf",
+            "UDEVGothicNF-Italic.ttf",
+            "UDEVGothicNF-BoldItalic.ttf"
+        )
+    },
+    @{
+        Name = "Moralerspace"
+        ZipUrl = ""  # Will be updated by GitHub CLI
+        Fonts = @(
+            "Moralerspace-Regular.ttf",
+            "Moralerspace-Bold.ttf",
+            "Moralerspace-Italic.ttf",
+            "Moralerspace-BoldItalic.ttf",
+            "MoralerspaceNF-Regular.ttf",
+            "MoralerspaceNF-Bold.ttf",
+            "MoralerspaceNF-Italic.ttf",
+            "MoralerspaceNF-BoldItalic.ttf"
+        )
+    },
+    @{
+        Name = "Cica"
+        ZipUrl = ""  # Will be updated by GitHub CLI
+        Fonts = @(
+            "Cica-Regular.ttf",
+            "Cica-Bold.ttf",
+            "Cica-RegularItalic.ttf",
+            "Cica-BoldItalic.ttf"
+        )
+    }
+)
+
+# GitHub CLI function to get latest release URL
+function Get-LatestReleaseUrl {
+    param (
+        [string]$Repo,
+        [string]$Pattern
+    )
+    
+    try {
+        $assets = gh release view --repo $Repo --json assets | ConvertFrom-Json
+        $matchingAsset = $assets.assets | Where-Object { $_.name -match $Pattern } | Select-Object -First 1
+        
+        if ($matchingAsset) {
+            return $matchingAsset.url
+        } else {
+            Write-Warning "No asset matching pattern '$Pattern' found in $Repo"
+            return $null
+        }
+    } catch {
+        Write-Warning "Failed to get latest release from $Repo : $($_.Exception.Message)"
+        return $null
+    }
+}
 
 # Font folder path
 $fontsFolder = [Environment]::GetFolderPath("Fonts")
@@ -237,9 +180,11 @@ Write-Host "Downloading and installing fonts..." -ForegroundColor Green
 Write-Host ""
 
 $successCount = 0
-$totalCount = $urls.Count
+$totalCount = $directFonts.Count + ($zipFonts | ForEach-Object { $_.Fonts.Count } | Measure-Object -Sum).Sum
 
-foreach ($font in $urls) {
+# Install direct TTF fonts (MesloLGS NF)
+Write-Host "Installing MesloLGS NF fonts..." -ForegroundColor Cyan
+foreach ($font in $directFonts) {
     try {
         Write-Host "Downloading $($font.Name)..." -ForegroundColor Yellow
         
@@ -264,6 +209,90 @@ foreach ($font in $urls) {
         
     } catch {
         Write-Error "Failed to install $($font.Name): $($_.Exception.Message)"
+    }
+    
+    Write-Host ""
+}
+
+# Install ZIP font packages (Japanese fonts)
+Write-Host "Getting latest release URLs using GitHub CLI..." -ForegroundColor Cyan
+
+# Get latest release URLs dynamically
+$latestHackGenUrl = Get-LatestReleaseUrl "yuru7/HackGen" "HackGen_v.*\.zip"
+$latestUdevUrl = Get-LatestReleaseUrl "yuru7/udev-gothic" "UDEVGothic_v.*\.zip"
+$latestMoralerspaceUrl = Get-LatestReleaseUrl "yuru7/moralerspace" "Moralerspace_v.*\.zip"
+$latestCicaUrl = Get-LatestReleaseUrl "miiton/Cica" "Cica_v.*\.zip"
+
+# Update URLs if we got them successfully
+if ($latestHackGenUrl) { $zipFonts[0].ZipUrl = $latestHackGenUrl; Write-Host "✅ HackGen latest URL obtained" -ForegroundColor Green }
+if ($latestUdevUrl) { $zipFonts[1].ZipUrl = $latestUdevUrl; Write-Host "✅ UDEV Gothic latest URL obtained" -ForegroundColor Green }
+if ($latestMoralerspaceUrl) { $zipFonts[2].ZipUrl = $latestMoralerspaceUrl; Write-Host "✅ Moralerspace latest URL obtained" -ForegroundColor Green }
+if ($latestCicaUrl) { $zipFonts[3].ZipUrl = $latestCicaUrl; Write-Host "✅ Cica latest URL obtained" -ForegroundColor Green }
+
+if (!$latestHackGenUrl -or !$latestUdevUrl -or !$latestMoralerspaceUrl -or !$latestCicaUrl) {
+    Write-Host "❌ Failed to obtain latest release URLs. Please check GitHub CLI configuration." -ForegroundColor Red
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+Write-Host ""
+
+foreach ($fontPackage in $zipFonts) {
+    try {
+        Write-Host "Installing $($fontPackage.Name) fonts..." -ForegroundColor Cyan
+        
+        # Temporary paths
+        $tempZip = Join-Path $env:TEMP "$($fontPackage.Name -replace '\s','').zip"
+        $tempExtractDir = Join-Path $env:TEMP "$($fontPackage.Name -replace '\s','')_extract"
+        
+        Write-Host "Downloading $($fontPackage.Name) package..." -ForegroundColor Yellow
+        
+        # Download ZIP
+        Invoke-WebRequest -Uri $fontPackage.ZipUrl -OutFile $tempZip -UseBasicParsing
+        
+        Write-Host "Extracting $($fontPackage.Name) fonts..." -ForegroundColor Yellow
+        
+        # Extract ZIP
+        if (Test-Path $tempExtractDir) {
+            Remove-Item $tempExtractDir -Recurse -Force
+        }
+        Expand-Archive -Path $tempZip -DestinationPath $tempExtractDir -Force
+        
+        # Install each font from the package
+        foreach ($fontFile in $fontPackage.Fonts) {
+            try {
+                # Find the font file in extracted directory (may be in subdirectories)
+                $fontPaths = Get-ChildItem -Path $tempExtractDir -Name $fontFile -Recurse -ErrorAction SilentlyContinue
+                
+                if ($fontPaths) {
+                    $fontPath = $fontPaths | Select-Object -First 1
+                    $fullFontPath = Get-ChildItem -Path $tempExtractDir -Name $fontFile -Recurse | Select-Object -First 1 -ExpandProperty FullName
+                    
+                    Write-Host "Installing $fontFile..." -ForegroundColor Yellow
+                    
+                    # Install font
+                    $shell = New-Object -ComObject Shell.Application
+                    $fontsFolderShell = $shell.Namespace(0x14)
+                    $fontsFolderShell.CopyHere($fullFontPath, 0x10 + 0x4)
+                    
+                    Write-Host "Successfully installed $fontFile." -ForegroundColor Green
+                    $successCount++
+                } else {
+                    Write-Warning "Font file $fontFile not found in $($fontPackage.Name) package."
+                }
+            } catch {
+                Write-Warning "Failed to install $fontFile from $($fontPackage.Name): $($_.Exception.Message)"
+            }
+        }
+        
+        # Cleanup
+        Remove-Item $tempZip -Force -ErrorAction SilentlyContinue
+        Remove-Item $tempExtractDir -Recurse -Force -ErrorAction SilentlyContinue
+        
+        Write-Host "Completed $($fontPackage.Name) installation." -ForegroundColor Green
+        
+    } catch {
+        Write-Error "Failed to install $($fontPackage.Name) package: $($_.Exception.Message)"
     }
     
     Write-Host ""
