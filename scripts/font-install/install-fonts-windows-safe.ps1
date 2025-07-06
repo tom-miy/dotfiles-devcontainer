@@ -1,4 +1,4 @@
-# MesloLGS NF Font Auto Installer for Windows
+# MesloLGS NF & HackGen & UDEV Gothic & Moralerspace & Cica Font Auto Installer for Windows
 # Run PowerShell as Administrator
 
 param(
@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "MesloLGS NF Font Installer for Windows" -ForegroundColor Cyan
+Write-Host "MesloLGS NF & HackGen & UDEV Gothic & Moralerspace & Cica Font Installer for Windows" -ForegroundColor Cyan
 Write-Host "======================================" -ForegroundColor Cyan
 
 # Check Administrator privileges
