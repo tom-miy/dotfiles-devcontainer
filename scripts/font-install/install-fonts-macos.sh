@@ -7,67 +7,34 @@ set -e
 echo "🔤 MesloLGS NF & HackGen & UDEV Gothic & Moralerspace & Cica フォントインストーラー (macOS)"
 echo "=============================================="
 
-# フォント定義
-declare -a FONTS=(
-    "MesloLGS%20NF%20Regular.ttf:MesloLGS NF Regular.ttf"
-    "MesloLGS%20NF%20Bold.ttf:MesloLGS NF Bold.ttf"
-    "MesloLGS%20NF%20Italic.ttf:MesloLGS NF Italic.ttf"
-    "MesloLGS%20NF%20Bold%20Italic.ttf:MesloLGS NF Bold Italic.ttf"
-)
-
-# HackGen フォント定義
-declare -a HACKGEN_FONTS=(
-    "HackGen-Regular.ttf"
-    "HackGen-Bold.ttf"
-    "HackGen35-Regular.ttf"
-    "HackGen35-Bold.ttf"
-    "HackGenNerd-Regular.ttf"
-    "HackGenNerd-Bold.ttf"
-    "HackGenNerd35-Regular.ttf"
-    "HackGenNerd35-Bold.ttf"
-)
-
-# UDEV Gothic フォント定義
-declare -a UDEV_FONTS=(
-    "UDEVGothic-Regular.ttf"
-    "UDEVGothic-Bold.ttf"
-    "UDEVGothic-Italic.ttf"
-    "UDEVGothic-BoldItalic.ttf"
-    "UDEVGothicNF-Regular.ttf"
-    "UDEVGothicNF-Bold.ttf"
-    "UDEVGothicNF-Italic.ttf"
-    "UDEVGothicNF-BoldItalic.ttf"
-)
-
-# Moralerspace フォント定義
-declare -a MORALERSPACE_FONTS=(
-    "Moralerspace-Regular.ttf"
-    "Moralerspace-Bold.ttf"
-    "Moralerspace-Italic.ttf"
-    "Moralerspace-BoldItalic.ttf"
-    "MoralerspaceNF-Regular.ttf"
-    "MoralerspaceNF-Bold.ttf"
-    "MoralerspaceNF-Italic.ttf"
-    "MoralerspaceNF-BoldItalic.ttf"
-)
-
-# Cica フォント定義
-declare -a CICA_FONTS=(
-    "Cica-Regular.ttf"
-    "Cica-Bold.ttf"
-    "Cica-RegularItalic.ttf"
-    "Cica-BoldItalic.ttf"
-)
+# フォント定義（配列を使わない方式）
+FONT_URLS="MesloLGS%20NF%20Regular.ttf:MesloLGS NF Regular.ttf
+MesloLGS%20NF%20Bold.ttf:MesloLGS NF Bold.ttf
+MesloLGS%20NF%20Italic.ttf:MesloLGS NF Italic.ttf
+MesloLGS%20NF%20Bold%20Italic.ttf:MesloLGS NF Bold Italic.ttf"
 
 BASE_URL="https://github.com/romkatv/powerlevel10k-media/raw/master"
 FONT_DIR="$HOME/Library/Fonts"
 
+# フォールバック用の固定URL（GitHub CLI認証が使えない場合）
+HACKGEN_FALLBACK_URL="https://github.com/yuru7/HackGen/releases/download/v2.10.0/HackGen_v2.10.0.zip"
+UDEV_FALLBACK_URL="https://github.com/yuru7/udev-gothic/releases/download/v2.0.0/UDEVGothic_v2.0.0.zip"
+MORALERSPACE_FALLBACK_URL="https://github.com/yuru7/moralerspace/releases/download/v1.0.2/Moralerspace_v1.0.2.zip"
+CICA_FALLBACK_URL="https://github.com/miiton/Cica/releases/download/v5.0.3/Cica_v5.0.3.zip"
+
 # 必要なコマンドチェック
 if ! command -v gh >/dev/null 2>&1; then
-    echo "❌ gh (GitHub CLI) が必要です。インストールしてください:"
-    echo "   brew install gh"
-    echo "   または https://cli.github.com/ からインストール"
-    exit 1
+    echo "⚠️ gh (GitHub CLI) が見つかりません。固定URLを使用します。"
+    USE_FALLBACK_URLS=true
+else
+    # GitHub CLI認証チェック
+    if ! gh auth status >/dev/null 2>&1; then
+        echo "⚠️ GitHub CLI認証が必要ですが、未認証です。固定URLを使用します。"
+        echo "   認証したい場合: gh auth login"
+        USE_FALLBACK_URLS=true
+    else
+        USE_FALLBACK_URLS=false
+    fi
 fi
 
 # GitHub CLIでリリース情報を取得する関数
@@ -93,8 +60,7 @@ mkdir -p "$FONT_DIR"
 install_zip_fonts() {
     local zip_url="$1"
     local font_name="$2"
-    shift 2
-    local fonts=("$@")
+    # Note: shift 2 and fonts=("$@") removed as we now install all TTF files automatically
     
     echo "📦 $font_name フォントをダウンロード中..."
     
@@ -121,30 +87,35 @@ install_zip_fonts() {
         return 1
     fi
     
-    # フォントファイルをインストール
+    # デバッグ: 展開されたファイル一覧を表示
+    echo "📂 展開されたファイル:"
+    find "$temp_dir" -name "*.ttf" -type f | sed 's/.*\//   - /'
+    
+    # すべてのTTFファイルをインストール
     local installed_count=0
-    for font_file in "${fonts[@]}"; do
-        # 展開されたディレクトリからフォントファイルを検索
-        local found_font=$(find "$temp_dir" -name "$font_file" -type f | head -1)
-        
-        if [ -n "$found_font" ]; then
-            echo "🔄 $font_file をインストール中..."
-            if cp "$found_font" "$FONT_DIR/"; then
-                echo "✅ $font_file のインストールが完了しました。"
-                ((installed_count++))
-                ((success_count++))
-            else
-                echo "❌ $font_file のインストールに失敗しました。"
-            fi
+    find "$temp_dir" -name "*.ttf" -type f | while read -r ttf_file; do
+        local file_name=$(basename "$ttf_file")
+        echo "🔄 $file_name をインストール中..."
+        if cp "$ttf_file" "$FONT_DIR/"; then
+            echo "✅ $file_name のインストールが完了しました。"
+            installed_count=$((installed_count + 1))
+            success_count=$((success_count + 1))
         else
-            echo "⚠️ $font_file が $font_name パッケージ内に見つかりませんでした。"
+            echo "❌ $file_name のインストールに失敗しました。"
         fi
     done
+    
+    # ファイル数を再カウント（パイプライン問題のため）
+    installed_count=$(find "$FONT_DIR" -name "*$(echo "$font_name" | tr '[:upper:]' '[:lower:]')*" -type f 2>/dev/null | wc -l)
+    
+    if [ "$installed_count" -eq 0 ]; then
+        echo "⚠️ $font_name パッケージ内にTTFファイルが見つかりませんでした。"
+    fi
     
     # 一時ディレクトリ削除
     rm -rf "$temp_dir"
     
-    echo "📊 $font_name: $installed_count/${#fonts[@]} ファイルをインストールしました。"
+    echo "📊 $font_name: $installed_count ファイルをインストールしました。"
     echo ""
 }
 
@@ -191,13 +162,10 @@ echo "📥 フォントをダウンロード・インストール中..."
 echo ""
 
 success_count=0
-total_count=$((${#FONTS[@]} + ${#HACKGEN_FONTS[@]} + ${#UDEV_FONTS[@]} + ${#MORALERSPACE_FONTS[@]} + ${#CICA_FONTS[@]}))
 
 # MesloLGS NF フォントダウンロード
 echo "📦 MesloLGS NF フォントをダウンロード中..."
-for font_info in "${FONTS[@]}"; do
-    IFS=':' read -r url_name file_name <<< "$font_info"
-    
+while IFS=':' read -r url_name file_name; do
     echo "🔄 $file_name をダウンロード中..."
     
     # 一時ファイルパス
@@ -210,7 +178,7 @@ for font_info in "${FONTS[@]}"; do
         # フォントをインストール
         if cp "$temp_file" "$FONT_DIR/"; then
             echo "✅ $file_name のインストールが完了しました。"
-            ((success_count++))
+            success_count=$((success_count + 1))
         else
             echo "❌ $file_name のインストールに失敗しました。"
         fi
@@ -222,33 +190,48 @@ for font_info in "${FONTS[@]}"; do
     fi
     
     echo ""
-done
+done << EOF
+$FONT_URLS
+EOF
 
 # 日本語フォントパッケージのインストール（ZIP形式）
-echo "🔄 GitHub CLI で最新リリースを取得中..."
-
-# 動的に最新リリースURLを取得
-HACKGEN_LATEST_URL=$(get_latest_release_url "yuru7/HackGen" "HackGen_v.*\\.zip")
-UDEV_LATEST_URL=$(get_latest_release_url "yuru7/udev-gothic" "UDEVGothic_v.*\\.zip")
-MORALERSPACE_LATEST_URL=$(get_latest_release_url "yuru7/moralerspace" "Moralerspace_v.*\\.zip")
-CICA_LATEST_URL=$(get_latest_release_url "miiton/Cica" "Cica_v.*\\.zip")
-
-if [ -n "$HACKGEN_LATEST_URL" ] && [ -n "$UDEV_LATEST_URL" ] && [ -n "$MORALERSPACE_LATEST_URL" ] && [ -n "$CICA_LATEST_URL" ]; then
-    echo "✅ 最新リリースURL取得完了"
+if [ "$USE_FALLBACK_URLS" = "true" ]; then
+    echo "📦 固定URLを使用してフォントをダウンロードします..."
     
-    install_zip_fonts "$HACKGEN_LATEST_URL" "HackGen" "${HACKGEN_FONTS[@]}"
-    install_zip_fonts "$UDEV_LATEST_URL" "UDEV Gothic" "${UDEV_FONTS[@]}"
-    install_zip_fonts "$MORALERSPACE_LATEST_URL" "Moralerspace" "${MORALERSPACE_FONTS[@]}"
-    install_zip_fonts "$CICA_LATEST_URL" "Cica" "${CICA_FONTS[@]}"
+    install_zip_fonts "$HACKGEN_FALLBACK_URL" "HackGen"
+    install_zip_fonts "$UDEV_FALLBACK_URL" "UDEV Gothic"
+    install_zip_fonts "$MORALERSPACE_FALLBACK_URL" "Moralerspace"
+    install_zip_fonts "$CICA_FALLBACK_URL" "Cica"
 else
-    echo "❌ 最新リリースURL取得に失敗しました。GitHub CLI が正常に動作していることを確認してください。"
-    exit 1
+    echo "🔄 GitHub CLI で最新リリースを取得中..."
+    
+    # 動的に最新リリースURLを取得
+    HACKGEN_LATEST_URL=$(get_latest_release_url "yuru7/HackGen" "HackGen_v.*\\.zip")
+    UDEV_LATEST_URL=$(get_latest_release_url "yuru7/udev-gothic" "UDEVGothic_v.*\\.zip")
+    MORALERSPACE_LATEST_URL=$(get_latest_release_url "yuru7/moralerspace" "Moralerspace_v.*\\.zip")
+    CICA_LATEST_URL=$(get_latest_release_url "miiton/Cica" "Cica_v.*\\.zip")
+    
+    if [ -n "$HACKGEN_LATEST_URL" ] && [ -n "$UDEV_LATEST_URL" ] && [ -n "$MORALERSPACE_LATEST_URL" ] && [ -n "$CICA_LATEST_URL" ]; then
+        echo "✅ 最新リリースURL取得完了"
+        
+        install_zip_fonts "$HACKGEN_LATEST_URL" "HackGen"
+        install_zip_fonts "$UDEV_LATEST_URL" "UDEV Gothic"
+        install_zip_fonts "$MORALERSPACE_LATEST_URL" "Moralerspace"
+        install_zip_fonts "$CICA_LATEST_URL" "Cica"
+    else
+        echo "⚠️ 最新リリースURL取得に失敗しました。固定URLを使用します。"
+        
+        install_zip_fonts "$HACKGEN_FALLBACK_URL" "HackGen"
+        install_zip_fonts "$UDEV_FALLBACK_URL" "UDEV Gothic"
+        install_zip_fonts "$MORALERSPACE_FALLBACK_URL" "Moralerspace"
+        install_zip_fonts "$CICA_FALLBACK_URL" "Cica"
+    fi
 fi
 
 echo "=============================================="
 
-if [ "$success_count" -eq "$total_count" ]; then
-    echo "🎉 すべてのフォント ($success_count/$total_count) のインストールが完了しました!"
+if [ "$success_count" -gt 0 ]; then
+    echo "🎉 フォントのインストールが完了しました! ($success_count ファイル)"
     echo ""
     echo "📝 次の手順:"
     echo "  1. VS Code/Cursor を再起動してください"
@@ -260,7 +243,7 @@ if [ "$success_count" -eq "$total_count" ]; then
     echo '     "terminal.integrated.fontFamily": "'\''Cica'\''"              # シンプルな日本語対応'
     echo "  3. devcontainer を再構築してください"
 else
-    echo "⚠️  一部のフォントのインストールに失敗しました ($success_count/$total_count)"
+    echo "⚠️  フォントのインストールに失敗しました。"
     echo "手動でインストールを試してください。"
 fi
 

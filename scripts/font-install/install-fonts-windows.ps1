@@ -23,12 +23,19 @@ if (-not $isAdmin) {
 }
 
 # Check for GitHub CLI
+$useFallbackUrls = $false
 if (!(Get-Command gh -ErrorAction SilentlyContinue)) {
-    Write-Warning "GitHub CLI (gh) is required but not installed."
-    Write-Host "Please install GitHub CLI from https://cli.github.com/" -ForegroundColor Yellow
-    Write-Host "Or use: winget install --id GitHub.cli" -ForegroundColor Yellow
-    Read-Host "Press Enter to exit"
-    exit 1
+    Write-Warning "GitHub CLI (gh) not found. Using fallback URLs."
+    $useFallbackUrls = $true
+} else {
+    # Check GitHub CLI authentication
+    try {
+        $null = gh auth status 2>$null
+    } catch {
+        Write-Warning "GitHub CLI authentication required but not authenticated. Using fallback URLs."
+        Write-Host "To authenticate: gh auth login" -ForegroundColor Yellow
+        $useFallbackUrls = $true
+    }
 }
 
 # Direct TTF downloads (MesloLGS NF)
@@ -55,59 +62,23 @@ $directFonts = @(
     }
 )
 
-# ZIP font packages (Japanese fonts) - URLs will be updated dynamically
+# ZIP font packages (Japanese fonts)
 $zipFonts = @(
     @{
         Name = "HackGen"
-        ZipUrl = ""  # Will be updated by GitHub CLI
-        Fonts = @(
-            "HackGen-Regular.ttf",
-            "HackGen-Bold.ttf",
-            "HackGen35-Regular.ttf",
-            "HackGen35-Bold.ttf",
-            "HackGenNerd-Regular.ttf",
-            "HackGenNerd-Bold.ttf",
-            "HackGenNerd35-Regular.ttf",
-            "HackGenNerd35-Bold.ttf"
-        )
+        ZipUrl = "https://github.com/yuru7/HackGen/releases/download/v2.10.0/HackGen_v2.10.0.zip"
     },
     @{
         Name = "UDEV Gothic"
-        ZipUrl = ""  # Will be updated by GitHub CLI
-        Fonts = @(
-            "UDEVGothic-Regular.ttf",
-            "UDEVGothic-Bold.ttf",
-            "UDEVGothic-Italic.ttf",
-            "UDEVGothic-BoldItalic.ttf",
-            "UDEVGothicNF-Regular.ttf",
-            "UDEVGothicNF-Bold.ttf",
-            "UDEVGothicNF-Italic.ttf",
-            "UDEVGothicNF-BoldItalic.ttf"
-        )
+        ZipUrl = "https://github.com/yuru7/udev-gothic/releases/download/v2.0.0/UDEVGothic_v2.0.0.zip"
     },
     @{
         Name = "Moralerspace"
-        ZipUrl = ""  # Will be updated by GitHub CLI
-        Fonts = @(
-            "Moralerspace-Regular.ttf",
-            "Moralerspace-Bold.ttf",
-            "Moralerspace-Italic.ttf",
-            "Moralerspace-BoldItalic.ttf",
-            "MoralerspaceNF-Regular.ttf",
-            "MoralerspaceNF-Bold.ttf",
-            "MoralerspaceNF-Italic.ttf",
-            "MoralerspaceNF-BoldItalic.ttf"
-        )
+        ZipUrl = "https://github.com/yuru7/moralerspace/releases/download/v1.0.2/Moralerspace_v1.0.2.zip"
     },
     @{
         Name = "Cica"
-        ZipUrl = ""  # Will be updated by GitHub CLI
-        Fonts = @(
-            "Cica-Regular.ttf",
-            "Cica-Bold.ttf",
-            "Cica-RegularItalic.ttf",
-            "Cica-BoldItalic.ttf"
-        )
+        ZipUrl = "https://github.com/miiton/Cica/releases/download/v5.0.3/Cica_v5.0.3.zip"
     }
 )
 
@@ -180,7 +151,7 @@ Write-Host "Downloading and installing fonts..." -ForegroundColor Green
 Write-Host ""
 
 $successCount = 0
-$totalCount = $directFonts.Count + ($zipFonts | ForEach-Object { $_.Fonts.Count } | Measure-Object -Sum).Sum
+$totalCount = $directFonts.Count  # We'll count ZIP fonts dynamically
 
 # Install direct TTF fonts (MesloLGS NF)
 Write-Host "Installing MesloLGS NF fonts..." -ForegroundColor Cyan
@@ -215,24 +186,26 @@ foreach ($font in $directFonts) {
 }
 
 # Install ZIP font packages (Japanese fonts)
-Write-Host "Getting latest release URLs using GitHub CLI..." -ForegroundColor Cyan
-
-# Get latest release URLs dynamically
-$latestHackGenUrl = Get-LatestReleaseUrl "yuru7/HackGen" "HackGen_v.*\.zip"
-$latestUdevUrl = Get-LatestReleaseUrl "yuru7/udev-gothic" "UDEVGothic_v.*\.zip"
-$latestMoralerspaceUrl = Get-LatestReleaseUrl "yuru7/moralerspace" "Moralerspace_v.*\.zip"
-$latestCicaUrl = Get-LatestReleaseUrl "miiton/Cica" "Cica_v.*\.zip"
-
-# Update URLs if we got them successfully
-if ($latestHackGenUrl) { $zipFonts[0].ZipUrl = $latestHackGenUrl; Write-Host "✅ HackGen latest URL obtained" -ForegroundColor Green }
-if ($latestUdevUrl) { $zipFonts[1].ZipUrl = $latestUdevUrl; Write-Host "✅ UDEV Gothic latest URL obtained" -ForegroundColor Green }
-if ($latestMoralerspaceUrl) { $zipFonts[2].ZipUrl = $latestMoralerspaceUrl; Write-Host "✅ Moralerspace latest URL obtained" -ForegroundColor Green }
-if ($latestCicaUrl) { $zipFonts[3].ZipUrl = $latestCicaUrl; Write-Host "✅ Cica latest URL obtained" -ForegroundColor Green }
-
-if (!$latestHackGenUrl -or !$latestUdevUrl -or !$latestMoralerspaceUrl -or !$latestCicaUrl) {
-    Write-Host "❌ Failed to obtain latest release URLs. Please check GitHub CLI configuration." -ForegroundColor Red
-    Read-Host "Press Enter to exit"
-    exit 1
+if ($useFallbackUrls) {
+    Write-Host "Using fallback URLs for font downloads..." -ForegroundColor Cyan
+} else {
+    Write-Host "Getting latest release URLs using GitHub CLI..." -ForegroundColor Cyan
+    
+    # Get latest release URLs dynamically
+    $latestHackGenUrl = Get-LatestReleaseUrl "yuru7/HackGen" "HackGen_v.*\.zip"
+    $latestUdevUrl = Get-LatestReleaseUrl "yuru7/udev-gothic" "UDEVGothic_v.*\.zip"
+    $latestMoralerspaceUrl = Get-LatestReleaseUrl "yuru7/moralerspace" "Moralerspace_v.*\.zip"
+    $latestCicaUrl = Get-LatestReleaseUrl "miiton/Cica" "Cica_v.*\.zip"
+    
+    # Update URLs if we got them successfully
+    if ($latestHackGenUrl) { $zipFonts[0].ZipUrl = $latestHackGenUrl; Write-Host "✅ HackGen latest URL obtained" -ForegroundColor Green }
+    if ($latestUdevUrl) { $zipFonts[1].ZipUrl = $latestUdevUrl; Write-Host "✅ UDEV Gothic latest URL obtained" -ForegroundColor Green }
+    if ($latestMoralerspaceUrl) { $zipFonts[2].ZipUrl = $latestMoralerspaceUrl; Write-Host "✅ Moralerspace latest URL obtained" -ForegroundColor Green }
+    if ($latestCicaUrl) { $zipFonts[3].ZipUrl = $latestCicaUrl; Write-Host "✅ Cica latest URL obtained" -ForegroundColor Green }
+    
+    if (!$latestHackGenUrl -or !$latestUdevUrl -or !$latestMoralerspaceUrl -or !$latestCicaUrl) {
+        Write-Host "⚠️ Some latest URLs failed to obtain. Using fallback URLs." -ForegroundColor Yellow
+    }
 }
 
 Write-Host ""
@@ -258,31 +231,31 @@ foreach ($fontPackage in $zipFonts) {
         }
         Expand-Archive -Path $tempZip -DestinationPath $tempExtractDir -Force
         
-        # Install each font from the package
-        foreach ($fontFile in $fontPackage.Fonts) {
+        # Debug: List all extracted files
+        Write-Host "Extracted files:" -ForegroundColor Cyan
+        Get-ChildItem -Path $tempExtractDir -Recurse -File | ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Gray }
+        
+        # Install all TTF files found in the package
+        $allTtfFiles = Get-ChildItem -Path $tempExtractDir -Filter "*.ttf" -Recurse -ErrorAction SilentlyContinue
+        
+        foreach ($ttfFile in $allTtfFiles) {
             try {
-                # Find the font file in extracted directory (may be in subdirectories)
-                $fontPaths = Get-ChildItem -Path $tempExtractDir -Name $fontFile -Recurse -ErrorAction SilentlyContinue
+                Write-Host "Installing $($ttfFile.Name)..." -ForegroundColor Yellow
                 
-                if ($fontPaths) {
-                    $fontPath = $fontPaths | Select-Object -First 1
-                    $fullFontPath = Get-ChildItem -Path $tempExtractDir -Name $fontFile -Recurse | Select-Object -First 1 -ExpandProperty FullName
-                    
-                    Write-Host "Installing $fontFile..." -ForegroundColor Yellow
-                    
-                    # Install font
-                    $shell = New-Object -ComObject Shell.Application
-                    $fontsFolderShell = $shell.Namespace(0x14)
-                    $fontsFolderShell.CopyHere($fullFontPath, 0x10 + 0x4)
-                    
-                    Write-Host "Successfully installed $fontFile." -ForegroundColor Green
-                    $successCount++
-                } else {
-                    Write-Warning "Font file $fontFile not found in $($fontPackage.Name) package."
-                }
+                # Install font
+                $shell = New-Object -ComObject Shell.Application
+                $fontsFolderShell = $shell.Namespace(0x14)
+                $fontsFolderShell.CopyHere($ttfFile.FullName, 0x10 + 0x4)
+                
+                Write-Host "Successfully installed $($ttfFile.Name)." -ForegroundColor Green
+                $successCount++
             } catch {
-                Write-Warning "Failed to install $fontFile from $($fontPackage.Name): $($_.Exception.Message)"
+                Write-Warning "Failed to install $($ttfFile.Name) from $($fontPackage.Name): $($_.Exception.Message)"
             }
+        }
+        
+        if ($allTtfFiles.Count -eq 0) {
+            Write-Warning "No TTF files found in $($fontPackage.Name) package."
         }
         
         # Cleanup
@@ -299,8 +272,8 @@ foreach ($fontPackage in $zipFonts) {
 }
 
 Write-Host "======================================" -ForegroundColor Cyan
-if ($successCount -eq $totalCount) {
-    Write-Host "All fonts ($successCount/$totalCount) installed successfully!" -ForegroundColor Green
+if ($successCount -gt 0) {
+    Write-Host "Successfully installed $successCount fonts!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
     Write-Host "  1. Restart VS Code/Cursor" -ForegroundColor White
@@ -312,8 +285,8 @@ if ($successCount -eq $totalCount) {
     Write-Host '     "terminal.integrated.fontFamily": "Cica"              # シンプルな日本語対応' -ForegroundColor Gray
     Write-Host "  3. Rebuild your devcontainer" -ForegroundColor White
 } else {
-    Write-Host "Some fonts failed to install ($successCount/$totalCount)" -ForegroundColor Yellow
-    Write-Host "Please try manual installation." -ForegroundColor Yellow
+    Write-Host "No fonts were installed successfully." -ForegroundColor Yellow
+    Write-Host "Please check the error messages above and try manual installation." -ForegroundColor Yellow
 }
 
 Write-Host ""

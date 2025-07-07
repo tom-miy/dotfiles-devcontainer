@@ -83,8 +83,8 @@ foreach ($font in $urls) {
         
         # Install font
         $shell = New-Object -ComObject Shell.Application
-        $fontsFolder = $shell.Namespace(0x14)
-        $fontsFolder.CopyHere($tempFile, 0x10 + 0x4)  # 0x10 = overwrite existing, 0x4 = no confirmation dialog
+        $fontsFolderShell = $shell.Namespace(0x14)
+        $fontsFolderShell.CopyHere($tempFile, 0x10 + 0x4)  # 0x10 = overwrite existing, 0x4 = no confirmation dialog
         
         # Remove temporary file
         Remove-Item $tempFile -Force
@@ -93,24 +93,24 @@ foreach ($font in $urls) {
         $successCount++
         
     } catch {
-        Write-Error "Failed to install $($font.Name): $($_.Exception.Message)"
+        Write-Warning "Failed to install $($font.Name): $($_.Exception.Message)"
     }
     
     Write-Host ""
 }
 
 Write-Host "======================================" -ForegroundColor Cyan
-if ($successCount -eq $totalCount) {
-    Write-Host "All fonts ($successCount/$totalCount) installed successfully!" -ForegroundColor Green
+if ($successCount -gt 0) {
+    Write-Host "Successfully installed $successCount fonts!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
     Write-Host "  1. Restart VS Code/Cursor" -ForegroundColor White
     Write-Host "  2. Add this to settings.json:" -ForegroundColor White
-    Write-Host '     "terminal.integrated.fontFamily": "''MesloLGS NF''"' -ForegroundColor Gray
+    Write-Host '     "terminal.integrated.fontFamily": "MesloLGS NF"' -ForegroundColor Gray
     Write-Host "  3. Rebuild your devcontainer" -ForegroundColor White
 } else {
-    Write-Host "Some fonts failed to install ($successCount/$totalCount)" -ForegroundColor Yellow
-    Write-Host "Please try manual installation." -ForegroundColor Yellow
+    Write-Host "No fonts were installed successfully." -ForegroundColor Yellow
+    Write-Host "Please check the error messages above and try manual installation." -ForegroundColor Yellow
 }
 
 Write-Host ""
