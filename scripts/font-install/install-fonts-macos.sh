@@ -105,9 +105,6 @@ install_zip_fonts() {
         fi
     done
     
-    # ファイル数を再カウント（パイプライン問題のため）
-    installed_count=$(find "$FONT_DIR" -name "*$(echo "$font_name" | tr '[:upper:]' '[:lower:]')*" -type f 2>/dev/null | wc -l)
-    
     if [ "$installed_count" -eq 0 ]; then
         echo "⚠️ $font_name パッケージ内にTTFファイルが見つかりませんでした。"
     fi
