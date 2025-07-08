@@ -1,12 +1,5 @@
 # zsh configuration
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 # Enable colors
 autoload -U colors && colors
 
@@ -42,20 +35,27 @@ if command -v sheldon >/dev/null 2>&1; then
     eval "$(sheldon source)"
 fi
 
+# Starship prompt
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+fi
+
+# zabrze (abbreviation expansion)
+if command -v zabrze >/dev/null 2>&1; then
+    eval "$(zabrze init --bind-keys)"
+fi
+
 # Aliases
-alias ll='ls -la'
-alias la='ls -A'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
+# alias ll='ls -la'
+# alias la='ls -A'
+# alias l='ls -CF'
+# alias ..='cd ..'
+# alias ...='cd ../..'
 
-# Git aliases
-alias g='git'
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git log --oneline'
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# # Git aliases
+# alias g='git'
+# alias gs='git status'
+# alias ga='git add'
+# alias gc='git commit'
+# alias gp='git push'
+# alias gl='git log --oneline'

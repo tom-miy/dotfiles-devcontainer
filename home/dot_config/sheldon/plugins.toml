@@ -7,10 +7,6 @@ apply = ["source"]
 
 [plugins]
 
-# Powerlevel10k theme
-[plugins.powerlevel10k]
-github = "romkatv/powerlevel10k"
-
 # Syntax highlighting
 [plugins.zsh-syntax-highlighting]
 github = "zsh-users/zsh-syntax-highlighting"
