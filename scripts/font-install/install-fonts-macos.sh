@@ -40,13 +40,17 @@ fi
 # GitHub CLIでリリース情報を取得する関数
 get_latest_release_url() {
     local repo="$1"
-    local pattern="$2"
+    local prefix="$2"
+    local suffix="$3"
     
-    # 最新リリースのアセットURLを取得
-    local url=$(gh release view --repo "$repo" --json assets --jq ".assets[] | select(.name | test(\"$pattern\")) | .url" | head -1)
+    # 最新リリースのアセットURLを取得（prefixとsuffixで安全にマッチング）
+    local url=$(gh release view --repo "$repo" --json assets --jq ".assets[] | select(.name | startswith(\"$prefix\") and endswith(\"$suffix\")) | .url" | head -1)
     
     if [ -z "$url" ]; then
-        echo "❌ $repo の最新リリースから $pattern に一致するファイルが見つかりません。" >&2
+        echo "❌ $repo の最新リリースから ${prefix}*${suffix} に一致するファイルが見つかりません。" >&2
+        # デバッグ用：利用可能なアセット一覧を表示
+        echo "利用可能なアセット:" >&2
+        gh release view --repo "$repo" --json assets --jq ".assets[].name" 2>/dev/null | sed 's/^/  - /' >&2 || true
         return 1
     fi
     
@@ -203,10 +207,10 @@ else
     echo "🔄 GitHub CLI で最新リリースを取得中..."
     
     # 動的に最新リリースURLを取得
-    HACKGEN_LATEST_URL=$(get_latest_release_url "yuru7/HackGen" "HackGen_v.*\\.zip")
-    UDEV_LATEST_URL=$(get_latest_release_url "yuru7/udev-gothic" "UDEVGothic_v.*\\.zip")
-    MORALERSPACE_LATEST_URL=$(get_latest_release_url "yuru7/moralerspace" "Moralerspace_v.*\\.zip")
-    CICA_LATEST_URL=$(get_latest_release_url "miiton/Cica" "Cica_v.*\\.zip")
+    HACKGEN_LATEST_URL=$(get_latest_release_url "yuru7/HackGen" "HackGen_v" ".zip")
+    UDEV_LATEST_URL=$(get_latest_release_url "yuru7/udev-gothic" "UDEVGothic_v" ".zip")
+    MORALERSPACE_LATEST_URL=$(get_latest_release_url "yuru7/moralerspace" "Moralerspace_v" ".zip")
+    CICA_LATEST_URL=$(get_latest_release_url "miiton/Cica" "Cica_v" ".zip")
     
     if [ -n "$HACKGEN_LATEST_URL" ] && [ -n "$UDEV_LATEST_URL" ] && [ -n "$MORALERSPACE_LATEST_URL" ] && [ -n "$CICA_LATEST_URL" ]; then
         echo "✅ 最新リリースURL取得完了"
