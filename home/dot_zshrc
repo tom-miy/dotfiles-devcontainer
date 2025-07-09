@@ -89,7 +89,9 @@ fi
 # alias gp='git push'
 # alias gl='git log --oneline'
 
-eval "$(gh completion -s zsh)"
+if command -v gh >/dev/null 2>&1; then
+    eval "$(gh completion -s zsh)"
+fi
 
 ghcr() {
   gh repo create "$@"
