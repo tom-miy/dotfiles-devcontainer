@@ -51,6 +51,13 @@ zstyle ':completion:*' verbose yes
 
 # 補完候補が多いときにスクロール
 bindkey '^I' expand-or-complete
+
+# Go settings
+export GOPATH="$HOME/go"
+export PATH="$PATH:$GOPATH/bin" 
+export PATH="$PATH:$HOME/.cargo/bin" 
+export PATH="$PATH:$HOME/.local/share/mise/shims"
+
 # mise (tool version management)
 if command -v mise >/dev/null 2>&1; then
     # Trust mise config files silently
