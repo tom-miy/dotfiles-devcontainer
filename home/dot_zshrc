@@ -1,7 +1,10 @@
 # zsh configuration
 
+# 補完システムの初期化（必須）
+autoload -U compinit
+compinit
 # Enable colors
-autoload -U colors && colors
+autoload -Uz colors && colors
 
 # History settings
 HISTSIZE=10000
@@ -19,9 +22,35 @@ setopt PUSHD_IGNORE_DUPS
 
 # Completion
 autoload -U compinit && compinit
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*:default' menu select=2
+# 補完候補をメニュー形式で表示
+zstyle ':completion:*' menu select
+
+# 補完候補に説明（ヘルプ）を表示
+zstyle ':completion:*:descriptions' format '%F{yellow}%d%f'
+# 補完候補を頻度順にソート
+zstyle ':completion:*' group-order 'history' 'all-files'
+# 補完候補の色を設定
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
+# 補完候補のマッチングを大文字小文字を区別しない
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+# 補完候補のグループ化
+zstyle ':completion:*' group-name ''
+
+# 補完候補の詳細表示
+zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:messages' format '%d'
+zstyle ':completion:*:warnings' format 'No matches for: %d'
+# makeコマンドの補完を有効化
+zstyle ':completion:*:*:make:*' tag-order 'targets'
+# ディレクトリの補完を有効化
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+
+# 補完候補が多いときにスクロール
+bindkey '^I' expand-or-complete
 # mise (tool version management)
 if command -v mise >/dev/null 2>&1; then
     # Trust mise config files silently
@@ -59,3 +88,12 @@ fi
 # alias gc='git commit'
 # alias gp='git push'
 # alias gl='git log --oneline'
+
+eval "$(gh completion -s zsh)"
+
+ghcr() {
+  gh repo create "$@"
+  ghq get "$1"
+  code "$(ghq list --full-path -e "$1")"
+}
+
