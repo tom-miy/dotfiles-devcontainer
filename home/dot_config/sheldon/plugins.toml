@@ -5,7 +5,22 @@ shell = "zsh"
 # Global apply setting for all plugins
 apply = ["source"]
 
-[plugins]
+# [plugins]
+
+[plugins.compinit]
+inline = 'autoload -U compinit && compinit && autoload -Uz colors && colors'
+
+[plugins.mise]
+inline = 'eval "$(mise activate zsh)"'
+
+[plugins.starship]
+inline = ' eval "$(starship completions zsh)" && eval "$(starship init zsh)"'
+
+[plugins.zabrze]
+inline = 'eval "$(zabrze init --bind-keys)"'
+
+[plugins.gh]
+inline = 'eval "$(gh completion -s zsh)"'
 
 # Syntax highlighting
 [plugins.zsh-syntax-highlighting]
@@ -25,8 +40,6 @@ github = "zsh-users/zsh-history-substring-search"
 # apply = ["PATH", "source"]
 # hooks.post = "eval \"$(fnm env --use-on-cd)\""
 
-[plugins.compinit]
-inline = 'autoload -U compinit && compinit'
 
 [plugins.zsh-completions]
 github = "zsh-users/zsh-completions"
@@ -41,3 +54,7 @@ inline = 'eval "$(mise completion zsh)"'
 
 [plugins.fzf-tab]
 github = "Aloxaf/fzf-tab"
+
+[plugins.make-completion]
+github = "zsh-users/zsh-completions"
+use = ["src/_make"]

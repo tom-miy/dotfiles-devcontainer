@@ -24,7 +24,8 @@ abbrevs:
     snippet: $(git symbolic-ref --short HEAD)
     evaluate: true
     global: true
-    context: '^git\s'    # # Git abbreviations
+    context: '^git\s'
+    # # Git abbreviations
     # g: git
     # gs: git status
     # ga: git add
